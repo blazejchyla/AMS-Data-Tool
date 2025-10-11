@@ -5,8 +5,7 @@ __pycache__/
 
 # individual
 *.csv
-/src/*.csv
-/src/*.copy.py
+*.copy.py
 
 # C extensions
 *.so
