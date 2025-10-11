@@ -1,7 +1,7 @@
 # plot_tool.py
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QCheckBox, QSlider,
-    QPushButton, QComboBox, QSpinBox, QWidget
+    QPushButton, QComboBox, QSpinBox, QWidget, QSizePolicy
 )
 from PySide6.QtCore import Qt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
@@ -56,24 +56,26 @@ class PlotDialog(QDialog):
         self.y_checkboxes = []
 
         layout = QVBoxLayout(self)
+        layout.setSpacing(0)
+        layout.setContentsMargins(5, 5, 5, 5)
 
-        # --- Toggle button at top ---
+        # --- Toggle Chart Settings Button ---
         self.toggle_chart_settings_btn = QPushButton("Toggle Chart Settings")
         self.toggle_chart_settings_btn.setCheckable(True)
         self.toggle_chart_settings_btn.setChecked(False)
         layout.addWidget(self.toggle_chart_settings_btn)
 
-        # --- Chart settings container below toggle button ---
+        # --- Chart Settings Container ---
         self.chart_settings_container = QWidget()
         self.chart_settings_container.setVisible(False)
         chart_layout = QVBoxLayout(self.chart_settings_container)
-        chart_layout.setSpacing(2)  # compact spacing
-        chart_layout.setContentsMargins(0,2,0,2)
+        chart_layout.setSpacing(2)
+        chart_layout.setContentsMargins(0, 2, 0, 2)
 
-        # --- Start slider layout ---
+        # --- Start Slider ---
         start_layout = QHBoxLayout()
         start_layout.setSpacing(2)
-        start_layout.setContentsMargins(0,2,0,2)
+        start_layout.setContentsMargins(0, 2, 0, 2)
         start_layout.addWidget(QLabel("Start:"))
         self.start_label = QLabel(str(self.timeline[0]))
         start_layout.addWidget(self.start_label)
@@ -81,15 +83,14 @@ class PlotDialog(QDialog):
         self.start_slider.setMinimum(0)
         self.start_slider.setMaximum(self.timeline_len - 1)
         self.start_slider.setValue(0)
-        self.start_slider.setFixedHeight(20)
         self.start_slider.valueChanged.connect(self.on_slider_change)
         start_layout.addWidget(self.start_slider)
         chart_layout.addLayout(start_layout)
 
-        # --- End slider layout ---
+        # --- End Slider ---
         end_layout = QHBoxLayout()
         end_layout.setSpacing(2)
-        end_layout.setContentsMargins(0,2,0,2)
+        end_layout.setContentsMargins(0, 2, 0, 2)
         end_layout.addWidget(QLabel("End:"))
         self.end_label = QLabel(str(self.timeline[-1]))
         end_layout.addWidget(self.end_label)
@@ -97,14 +98,14 @@ class PlotDialog(QDialog):
         self.end_slider.setMinimum(0)
         self.end_slider.setMaximum(self.timeline_len - 1)
         self.end_slider.setValue(self.timeline_len - 1)
-        self.end_slider.setFixedHeight(20)
         self.end_slider.valueChanged.connect(self.on_slider_change)
         end_layout.addWidget(self.end_slider)
         chart_layout.addLayout(end_layout)
 
-        # --- Y-axis checkboxes (horizontal row) ---
+        # --- Y-axis checkboxes ---
         cb_layout = QHBoxLayout()
         cb_layout.setSpacing(3)
+        cb_layout.setContentsMargins(0, 2, 0, 2)
         for i, col in enumerate(self.y_columns):
             cb = QCheckBox(col)
             cb.setChecked(i == 0)  # default first ticked
@@ -114,29 +115,27 @@ class PlotDialog(QDialog):
         chart_layout.addLayout(cb_layout)
 
         layout.addWidget(self.chart_settings_container)
-
-        # Connect toggle to adjust window dynamically
         self.toggle_chart_settings_btn.toggled.connect(
-            lambda checked: [self.chart_settings_container.setVisible(checked), self.adjust_window_height(self.chart_settings_container)]
+            lambda checked: [self.chart_settings_container.setVisible(checked), self.adjust_window_height()]
         )
 
-        # --- Plot canvas and toolbar ---
+        # --- Plot Canvas ---
         self.fig, self.ax_main = plt.subplots(figsize=(10, 4))
         self.canvas = FigureCanvas(self.fig)
         layout.addWidget(self.canvas)
 
+        # --- Plot Toolbar ---
         self.toolbar = NavigationToolbar(self.canvas, self)
         self.toolbar.setVisible(False)
         layout.addWidget(self.toolbar)
-
         self.toggle_toolbar_btn = QPushButton("Toggle Plot Toolbox")
         self.toggle_toolbar_btn.setCheckable(True)
         self.toggle_toolbar_btn.toggled.connect(
-            lambda checked: [self.toolbar.setVisible(checked), self.adjust_window_height(self.toolbar)]
+            lambda checked: [self.toolbar.setVisible(checked), self.adjust_window_height()]
         )
         layout.addWidget(self.toggle_toolbar_btn)
 
-        # --- Filter toolbox ---
+        # --- Filter Toolbox ---
         self.toggle_filter_btn = QPushButton("Toggle Filter Toolbox")
         self.toggle_filter_btn.setCheckable(True)
         self.toggle_filter_btn.setChecked(False)
@@ -146,7 +145,7 @@ class PlotDialog(QDialog):
         self.filter_container.setVisible(False)
         filter_layout = QVBoxLayout(self.filter_container)
         filter_layout.setSpacing(2)
-        filter_layout.setContentsMargins(0,2,0,2)
+        filter_layout.setContentsMargins(0, 2, 0, 2)
 
         # Filter options
         filt_layout = QHBoxLayout()
@@ -190,38 +189,31 @@ class PlotDialog(QDialog):
 
         # Reset filters button
         self.reset_filters_btn = QPushButton("Reset Filters")
-        self.reset_filters_btn.setFixedWidth(100)
+        self.reset_filters_btn.setMaximumWidth(120)
         self.reset_filters_btn.clicked.connect(self.reset_filters)
         filter_layout.addWidget(self.reset_filters_btn)
 
         layout.addWidget(self.filter_container)
         self.toggle_filter_btn.toggled.connect(
-            lambda checked: [self.filter_container.setVisible(checked), self.adjust_window_height(self.filter_container)]
+            lambda checked: [self.filter_container.setVisible(checked), self.adjust_window_height()]
         )
 
         # --- Initial plot ---
         self.update_plot()
 
     # --- Window resize helper ---
-    def adjust_window_height(self, container=None):
-        """
-        Adjust window height dynamically for a specific container.
-        If container is None, compute total visible height.
-        """
-        if container is None:
-            total_height = 0
-            for w in [self.toggle_chart_settings_btn, self.chart_settings_container,
-                      self.canvas, self.toolbar, self.toggle_toolbar_btn,
-                      self.toggle_filter_btn, self.filter_container]:
-                if w.isVisible():
-                    total_height += w.sizeHint().height()
-            self.resize(self.width(), total_height + 20)
-        else:
-            h = container.sizeHint().height()
-            if container.isVisible():
-                self.resize(self.width(), self.height() + h)
-            else:
-                self.resize(self.width(), self.height() - h)
+    def adjust_window_height(self):
+        """Resize window dynamically to fit visible toolboxes without shrinking chart."""
+        self.layout().activate()  # Update layout
+        w = self.width()
+        total_height = 0
+        for widget in [self.toggle_chart_settings_btn, self.chart_settings_container,
+                       self.canvas, self.toolbar, self.toggle_toolbar_btn,
+                       self.toggle_filter_btn, self.filter_container]:
+            if widget.isVisible():
+                total_height += widget.sizeHint().height()
+        total_height += self.layout().contentsMargins().top() + self.layout().contentsMargins().bottom()
+        self.resize(w, total_height)
 
     def toggle_toolbar(self, checked):
         self.toolbar.setVisible(checked)
@@ -256,11 +248,9 @@ class PlotDialog(QDialog):
 
     def apply_filter(self, series, col):
         data = series.copy()
-        # Spike removal
         if self.spike_cb.isChecked() and col in [cb.text() for cb in self.filter_y_checkboxes if cb.isChecked()]:
             k = self.spike_window.value()
             data = data.rolling(window=k, center=True, min_periods=1).median()
-        # Smoothing
         filter_type = self.filter_type.currentText()
         window = self.filter_window.value()
         if filter_type == "SMA" and col in [cb.text() for cb in self.filter_y_checkboxes if cb.isChecked()]:
@@ -294,6 +284,7 @@ class PlotDialog(QDialog):
             self.ax_main.xaxis.set_minor_locator(mdates.HourLocator())
         else:
             self.ax_main.xaxis.set_minor_locator(mdates.MinuteLocator(byminute=range(0,60,5)))
+
         self.ax_main.legend().set_visible(False)
         self.ax_main.figure.autofmt_xdate()
         self.canvas.draw()

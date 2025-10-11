@@ -14,8 +14,6 @@ from plot_tool import PlotDialog
 CHUNK_SIZE = 1000
 UNDO_LIMIT = 10
 
-#test
-
 # --- DuckDB Manager ---
 class DuckDBManager:
     def __init__(self, path="local.duckdb"):
