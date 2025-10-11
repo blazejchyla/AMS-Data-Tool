@@ -1,0 +1,57 @@
+{
+  "app.title": "AMSデータツール",
+
+  "core.menu.file": "ファイル",
+  "core.menu.edit": "編集",
+  "core.menu.view": "表示",
+  "core.menu.help": "ヘルプ",
+
+  "core.btn.import": "データをインポート",
+  "core.btn.export": "データをエクスポート",
+  "core.btn.plot": "グラフを表示",
+  "core.btn.settings": "詳細設定",
+  "core.btn.exit": "終了",
+
+  "core.label.language": "言語",
+  "core.label.delimiter": "区切り文字",
+  "core.label.confirm": "確認",
+  "core.label.cancel": "キャンセル",
+  "core.label.load_table": "テーブルを読み込む",
+  "core.label.no_table_selected": "テーブルが選択されていません。",
+
+  "core.msg.import_success": "インポートが完了しました。",
+  "core.msg.import_error": "インポート中にエラーが発生しました。",
+  "core.msg.export_success": "エクスポートが完了しました。",
+  "core.msg.export_error": "エクスポート中にエラーが発生しました。",
+  "core.msg.no_data_loaded": "表示するデータがありません。",
+
+  "core.dialog.settings.title": "詳細設定",
+  "core.dialog.settings.language": "言語を選択",
+  "core.dialog.settings.delimiter": "CSV区切り文字",
+  "core.dialog.settings.save": "設定を保存",
+  "core.dialog.settings.cancel": "キャンセル",
+
+  "core.error.load_failed": "データの読み込みに失敗しました。",
+  "core.error.no_table": "テーブル名が指定されていません。",
+  "core.error.no_db": "データベースが初期化されていません。",
+
+  "plot.title": "データプロット",
+  "plot.btn.toggle_chart_settings": "グラフ設定を切り替え",
+  "plot.label.start": "開始:",
+  "plot.label.end": "終了:",
+  "plot.label.select_data_for_plot": "グラフに表示するデータを選択:",
+  "plot.btn.toggle_plot_toolbox": "グラフツールを切り替え",
+  "plot.btn.toggle_filter_toolbox": "フィルターツールを切り替え",
+  "plot.label.assign_filter_to": "フィルターを適用:",
+  "plot.label.spike_removal": "スパイク除去:",
+  "plot.chk.enable": "有効",
+  "plot.label.spike_window": "スパイクウィンドウ:",
+  "plot.label.smoothing": "スムージング:",
+  "plot.opt.none": "なし",
+  "plot.opt.sma": "単純移動平均 (SMA)",
+  "plot.opt.ema": "指数移動平均 (EMA)",
+  "plot.label.window": "ウィンドウ:",
+  "plot.btn.reset_filters": "フィルターをリセット",
+  "plot.error.no_datetime_col": "有効な日時列が見つかりません。",
+  "plot.error.no_numeric_cols": "グラフ化可能な数値列がありません。"
+}

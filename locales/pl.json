@@ -1,0 +1,57 @@
+{
+  "app.title": "Narzędzie AMS Data",
+
+  "core.menu.file": "Plik",
+  "core.menu.edit": "Edycja",
+  "core.menu.view": "Widok",
+  "core.menu.help": "Pomoc",
+
+  "core.btn.import": "Importuj dane",
+  "core.btn.export": "Eksportuj dane",
+  "core.btn.plot": "Wykres",
+  "core.btn.settings": "Ustawienia zaawansowane",
+  "core.btn.exit": "Zakończ",
+
+  "core.label.language": "Język",
+  "core.label.delimiter": "Separator",
+  "core.label.confirm": "Potwierdź",
+  "core.label.cancel": "Anuluj",
+  "core.label.load_table": "Wczytaj tabelę",
+  "core.label.no_table_selected": "Nie wybrano tabeli.",
+
+  "core.msg.import_success": "Import zakończony pomyślnie.",
+  "core.msg.import_error": "Błąd podczas importu.",
+  "core.msg.export_success": "Eksport zakończony pomyślnie.",
+  "core.msg.export_error": "Błąd podczas eksportu.",
+  "core.msg.no_data_loaded": "Brak danych do wyświetlenia.",
+
+  "core.dialog.settings.title": "Ustawienia zaawansowane",
+  "core.dialog.settings.language": "Wybierz język",
+  "core.dialog.settings.delimiter": "Separator CSV",
+  "core.dialog.settings.save": "Zapisz ustawienia",
+  "core.dialog.settings.cancel": "Anuluj",
+
+  "core.error.load_failed": "Nie udało się wczytać danych.",
+  "core.error.no_table": "Nie podano nazwy tabeli.",
+  "core.error.no_db": "Baza danych nie została zainicjalizowana.",
+
+  "plot.title": "Wykres danych",
+  "plot.btn.toggle_chart_settings": "Pokaż/Ukryj ustawienia wykresu",
+  "plot.label.start": "Początek:",
+  "plot.label.end": "Koniec:",
+  "plot.label.select_data_for_plot": "Wybierz dane do wykresu:",
+  "plot.btn.toggle_plot_toolbox": "Pokaż/Ukryj narzędzia wykresu",
+  "plot.btn.toggle_filter_toolbox": "Pokaż/Ukryj narzędzia filtrów",
+  "plot.label.assign_filter_to": "Przypisz filtr do:",
+  "plot.label.spike_removal": "Usuwanie szumów:",
+  "plot.chk.enable": "Włącz",
+  "plot.label.spike_window": "Okno szumu:",
+  "plot.label.smoothing": "Wygładzanie:",
+  "plot.opt.none": "Brak",
+  "plot.opt.sma": "SMA (średnia ruchoma)",
+  "plot.opt.ema": "EMA (średnia wykładnicza)",
+  "plot.label.window": "Okno:",
+  "plot.btn.reset_filters": "Resetuj filtry",
+  "plot.error.no_datetime_col": "Brak prawidłowej kolumny daty/czasu.",
+  "plot.error.no_numeric_cols": "Brak kolumn numerycznych do wykresu."
+}

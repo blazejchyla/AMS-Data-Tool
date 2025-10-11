@@ -1,0 +1,57 @@
+{
+  "app.title": "AMS-Daten-Tool",
+
+  "core.menu.file": "Datei",
+  "core.menu.edit": "Bearbeiten",
+  "core.menu.view": "Ansicht",
+  "core.menu.help": "Hilfe",
+
+  "core.btn.import": "Daten importieren",
+  "core.btn.export": "Daten exportieren",
+  "core.btn.plot": "Diagramm anzeigen",
+  "core.btn.settings": "Erweiterte Einstellungen",
+  "core.btn.exit": "Beenden",
+
+  "core.label.language": "Sprache",
+  "core.label.delimiter": "Trennzeichen",
+  "core.label.confirm": "Bestätigen",
+  "core.label.cancel": "Abbrechen",
+  "core.label.load_table": "Tabelle laden",
+  "core.label.no_table_selected": "Keine Tabelle ausgewählt.",
+
+  "core.msg.import_success": "Import erfolgreich abgeschlossen.",
+  "core.msg.import_error": "Fehler beim Import.",
+  "core.msg.export_success": "Export erfolgreich abgeschlossen.",
+  "core.msg.export_error": "Fehler beim Export.",
+  "core.msg.no_data_loaded": "Keine Daten zum Anzeigen geladen.",
+
+  "core.dialog.settings.title": "Erweiterte Einstellungen",
+  "core.dialog.settings.language": "Sprache auswählen",
+  "core.dialog.settings.delimiter": "CSV-Trennzeichen",
+  "core.dialog.settings.save": "Einstellungen speichern",
+  "core.dialog.settings.cancel": "Abbrechen",
+
+  "core.error.load_failed": "Fehler beim Laden der Daten.",
+  "core.error.no_table": "Kein Tabellenname angegeben.",
+  "core.error.no_db": "Datenbank nicht initialisiert.",
+
+  "plot.title": "Datenplot",
+  "plot.btn.toggle_chart_settings": "Diagrammeinstellungen umschalten",
+  "plot.label.start": "Start:",
+  "plot.label.end": "Ende:",
+  "plot.label.select_data_for_plot": "Daten für Diagramm auswählen:",
+  "plot.btn.toggle_plot_toolbox": "Diagrammwerkzeuge umschalten",
+  "plot.btn.toggle_filter_toolbox": "Filterwerkzeuge umschalten",
+  "plot.label.assign_filter_to": "Filter zuweisen an:",
+  "plot.label.spike_removal": "Ausreißerentfernung:",
+  "plot.chk.enable": "Aktivieren",
+  "plot.label.spike_window": "Fenstergröße:",
+  "plot.label.smoothing": "Glättung:",
+  "plot.opt.none": "Keine",
+  "plot.opt.sma": "SMA",
+  "plot.opt.ema": "EMA",
+  "plot.label.window": "Fenster:",
+  "plot.btn.reset_filters": "Filter zurücksetzen",
+  "plot.error.no_datetime_col": "Keine gültige Datums-/Zeitspalte gefunden.",
+  "plot.error.no_numeric_cols": "Keine numerischen Spalten zum Plotten verfügbar."
+}
