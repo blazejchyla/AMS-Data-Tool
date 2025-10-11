@@ -1,7 +1,7 @@
 # plot_tool.py
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QCheckBox, QSlider,
-    QPushButton, QComboBox, QSpinBox, QWidget, QSizePolicy, QLayout
+    QPushButton, QComboBox, QSpinBox, QWidget, QSizePolicy, QSpacerItem, QSizePolicy, QGridLayout
 )
 from PySide6.QtCore import Qt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
@@ -15,7 +15,7 @@ class PlotDialog(QDialog):
     def __init__(self, db_manager, table_name, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Plot Data")
-        self.resize(1050, 730)  # Start width 1050
+        self.resize(1100, 730)  # Start width 1050
 
         self.db = db_manager
         self.table_name = table_name
@@ -68,7 +68,7 @@ class PlotDialog(QDialog):
         # --- Chart Settings Container ---
         self.chart_settings_container = QWidget()
         self.chart_settings_container.setVisible(False)
-        self.chart_settings_container.setFixedSize(1050, 100)
+        self.chart_settings_container.setFixedSize(1080, 140)
         chart_layout = QVBoxLayout(self.chart_settings_container)
         chart_layout.setSpacing(2)
         chart_layout.setContentsMargins(0, 2, 0, 2)
@@ -77,43 +77,61 @@ class PlotDialog(QDialog):
         start_layout = QHBoxLayout()
         start_layout.setSpacing(2)
         start_layout.setContentsMargins(0, 2, 0, 2)
+        start_layout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Fixed, QSizePolicy.Minimum))
         start_layout.addWidget(QLabel("Start:"))
+        start_layout.addSpacerItem(QSpacerItem(10, 0, QSizePolicy.Fixed, QSizePolicy.Minimum))
         self.start_label = QLabel(str(self.timeline[0]))
         start_layout.addWidget(self.start_label)
+        start_layout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Fixed, QSizePolicy.Minimum))
         self.start_slider = QSlider(Qt.Horizontal)
         self.start_slider.setMinimum(0)
         self.start_slider.setMaximum(self.timeline_len - 1)
         self.start_slider.setValue(0)
         self.start_slider.valueChanged.connect(self.on_slider_change)
         start_layout.addWidget(self.start_slider)
+        start_layout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Fixed, QSizePolicy.Minimum))
         chart_layout.addLayout(start_layout)
 
         # --- End Slider ---
         end_layout = QHBoxLayout()
         end_layout.setSpacing(2)
         end_layout.setContentsMargins(0, 2, 0, 2)
-        end_layout.addWidget(QLabel("End:"))
+        end_layout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Fixed, QSizePolicy.Minimum))
+        end_layout.addWidget(QLabel("End:  "))
+        end_layout.addSpacerItem(QSpacerItem(10, 0, QSizePolicy.Fixed, QSizePolicy.Minimum))
         self.end_label = QLabel(str(self.timeline[-1]))
         end_layout.addWidget(self.end_label)
+        end_layout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Fixed, QSizePolicy.Minimum))
         self.end_slider = QSlider(Qt.Horizontal)
         self.end_slider.setMinimum(0)
         self.end_slider.setMaximum(self.timeline_len - 1)
         self.end_slider.setValue(self.timeline_len - 1)
         self.end_slider.valueChanged.connect(self.on_slider_change)
         end_layout.addWidget(self.end_slider)
+        end_layout.addSpacerItem(QSpacerItem(20, 0, QSizePolicy.Fixed, QSizePolicy.Minimum))
         chart_layout.addLayout(end_layout)
 
         # --- Y-axis checkboxes ---
-        cb_layout = QHBoxLayout()
-        cb_layout.setSpacing(3)
-        cb_layout.setContentsMargins(0, 2, 0, 2)
+        outer_cb_layout = QVBoxLayout()  # or QHBoxLayout if you prefer
+        outer_cb_layout.setSpacing(3)
+        outer_cb_layout.setContentsMargins(100, 2, 100, 5)
+        outer_cb_layout.addWidget(QLabel("Select data for plot:"))
+
+        grid_cb_layout = QGridLayout()
+        grid_cb_layout.setSpacing(3)
+
+        max_per_row = 4
         for i, col in enumerate(self.y_columns):
             cb = QCheckBox(col)
             cb.setChecked(i == 0)  # default first ticked
             cb.stateChanged.connect(self.update_plot)
-            cb_layout.addWidget(cb)
+            row = i // max_per_row
+            col_idx = i % max_per_row
+            grid_cb_layout.addWidget(cb, row, col_idx)
             self.y_checkboxes.append(cb)
-        chart_layout.addLayout(cb_layout)
+
+        outer_cb_layout.addLayout(grid_cb_layout)
+        chart_layout.addLayout(outer_cb_layout)
 
         layout.addWidget(self.chart_settings_container)
         self.toggle_chart_settings_btn.toggled.connect(
@@ -144,50 +162,83 @@ class PlotDialog(QDialog):
 
         self.filter_container = QWidget()
         self.filter_container.setVisible(False)
-        self.filter_container.setFixedSize(1050, 120)
+        self.filter_container.setFixedSize(1080, 120)
         filter_layout = QVBoxLayout(self.filter_container)
         filter_layout.setSpacing(2)
         filter_layout.setContentsMargins(0, 2, 0, 2)
 
-        # Filter options
-        filt_layout = QHBoxLayout()
-        filt_layout.addWidget(QLabel("Spike removal:"))
+        # Horizontal layout for two filter types
+        filters_h_layout = QHBoxLayout()
+        filters_h_layout.setSpacing(6)
+
+        # --- Peak Reduction container ---
+        self.peak_container = QWidget()
+        peak_layout = QHBoxLayout(self.peak_container)
+        peak_layout.setSpacing(2)
+        peak_layout.setContentsMargins(0, 0, 0, 0)
+
+        peak_layout.addWidget(QLabel("Spike removal:"))
         self.spike_cb = QCheckBox("Enable")
         self.spike_cb.setChecked(False)
         self.spike_cb.stateChanged.connect(self.update_plot)
-        filt_layout.addWidget(self.spike_cb)
-        filt_layout.addWidget(QLabel("Spike window:"))
+        peak_layout.addWidget(self.spike_cb)
+        peak_layout.addWidget(QLabel("Spike window:"))
         self.spike_window = QSpinBox()
         self.spike_window.setMinimum(1)
         self.spike_window.setMaximum(50)
         self.spike_window.setValue(3)
         self.spike_window.valueChanged.connect(self.update_plot)
-        filt_layout.addWidget(self.spike_window)
+        peak_layout.addWidget(self.spike_window)
 
-        filt_layout.addWidget(QLabel("Smoothing:"))
+        filters_h_layout.addWidget(self.peak_container, 1)
+
+        # --- Smoothing container ---
+        self.smooth_container = QWidget()
+        smooth_layout = QHBoxLayout(self.smooth_container)
+        smooth_layout.setSpacing(2)
+        smooth_layout.setContentsMargins(0, 0, 0, 0)
+
+        smooth_layout.addWidget(QLabel("Smoothing:"))
         self.filter_type = QComboBox()
         self.filter_type.addItems(["None", "SMA", "EMA"])
         self.filter_type.currentIndexChanged.connect(self.update_plot)
-        filt_layout.addWidget(self.filter_type)
-        filt_layout.addWidget(QLabel("Window:"))
+        smooth_layout.addWidget(self.filter_type)
+        smooth_layout.addWidget(QLabel("Window:"))
         self.filter_window = QSpinBox()
         self.filter_window.setMinimum(1)
         self.filter_window.setMaximum(1000)
         self.filter_window.setValue(5)
         self.filter_window.valueChanged.connect(self.update_plot)
-        filt_layout.addWidget(self.filter_window)
-        filter_layout.addLayout(filt_layout)
+        smooth_layout.addWidget(self.filter_window)
 
-        # Y-column filter checkboxes
+        filters_h_layout.addWidget(self.smooth_container, 1)
+
+        # Add horizontal layout to main filter container
+        filter_layout.addLayout(filters_h_layout)
+
+        # --- Y-column filter checkboxes ---
         self.filter_y_checkboxes = []
-        filter_y_layout = QHBoxLayout()
+
+        outer_filter_cb_layout = QVBoxLayout()
+        outer_filter_cb_layout.setSpacing(3)
+        outer_filter_cb_layout.setContentsMargins(0, 5, 0, 5)
+        outer_filter_cb_layout.addWidget(QLabel("Assign filter to:"))
+
+        grid_filter_cb_layout = QGridLayout()
+        grid_filter_cb_layout.setSpacing(3)
+
+        max_per_row = 4
         for i, col in enumerate(self.y_columns):
             cb = QCheckBox(col)
             cb.setChecked(False)
             cb.stateChanged.connect(self.update_plot)
-            filter_y_layout.addWidget(cb)
+            row = i // max_per_row
+            col_idx = i % max_per_row
+            grid_filter_cb_layout.addWidget(cb, row, col_idx)
             self.filter_y_checkboxes.append(cb)
-        filter_layout.addLayout(filter_y_layout)
+
+        outer_filter_cb_layout.addLayout(grid_filter_cb_layout)
+        filter_layout.addLayout(outer_filter_cb_layout)
 
         # Reset filters button
         self.reset_filters_btn = QPushButton("Reset Filters")
