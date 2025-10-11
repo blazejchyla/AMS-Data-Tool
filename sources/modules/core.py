@@ -9,7 +9,7 @@ from PySide6.QtWidgets import (
     QProgressBar
 )
 from PySide6.QtGui import QKeySequence, QShortcut
-from plot_tool import PlotDialog
+from sources.modules.plot_tool import PlotDialog
 
 CHUNK_SIZE = 1000
 UNDO_LIMIT = 10
