@@ -1,7 +1,7 @@
 # plot_tool.py
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QLabel, QCheckBox, QSlider,
-    QPushButton, QComboBox, QSpinBox, QWidget, QSizePolicy
+    QPushButton, QComboBox, QSpinBox, QWidget, QSizePolicy, QLayout
 )
 from PySide6.QtCore import Qt
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
@@ -15,7 +15,7 @@ class PlotDialog(QDialog):
     def __init__(self, db_manager, table_name, parent=None):
         super().__init__(parent)
         self.setWindowTitle("Plot Data")
-        self.resize(1050, 700)  # Start width 1050
+        self.resize(1050, 730)  # Start width 1050
 
         self.db = db_manager
         self.table_name = table_name
@@ -68,6 +68,7 @@ class PlotDialog(QDialog):
         # --- Chart Settings Container ---
         self.chart_settings_container = QWidget()
         self.chart_settings_container.setVisible(False)
+        self.chart_settings_container.setFixedSize(1050, 100)
         chart_layout = QVBoxLayout(self.chart_settings_container)
         chart_layout.setSpacing(2)
         chart_layout.setContentsMargins(0, 2, 0, 2)
@@ -143,6 +144,7 @@ class PlotDialog(QDialog):
 
         self.filter_container = QWidget()
         self.filter_container.setVisible(False)
+        self.filter_container.setFixedSize(1050, 120)
         filter_layout = QVBoxLayout(self.filter_container)
         filter_layout.setSpacing(2)
         filter_layout.setContentsMargins(0, 2, 0, 2)
@@ -206,13 +208,12 @@ class PlotDialog(QDialog):
         """Resize window dynamically to fit visible toolboxes without shrinking chart."""
         self.layout().activate()  # Update layout
         w = self.width()
-        total_height = 0
-        for widget in [self.toggle_chart_settings_btn, self.chart_settings_container,
-                       self.canvas, self.toolbar, self.toggle_toolbar_btn,
-                       self.toggle_filter_btn, self.filter_container]:
+        base_height = 730
+        height_offset = 0
+        for widget in [self.chart_settings_container, self.toolbar, self.filter_container]:
             if widget.isVisible():
-                total_height += widget.sizeHint().height()
-        total_height += self.layout().contentsMargins().top() + self.layout().contentsMargins().bottom()
+                height_offset += widget.size().height()
+        total_height = base_height + self.layout().contentsMargins().top() + self.layout().contentsMargins().bottom() + height_offset
         self.resize(w, total_height)
 
     def toggle_toolbar(self, checked):
