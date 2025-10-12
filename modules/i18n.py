@@ -1,40 +1,50 @@
-# ./modules/i18n.py
-import os
+# modules/i18n.py
 import json
-import locale
+import os
+
+_active_loc = None  # Holds the currently active Localization object
 
 class Localization:
-    def __init__(self, lang=None, locales_dir="locales"):
-        self.locales_dir = locales_dir
-        self.lang = lang or self._detect_os_language()
-        self._load_locale()
-
-    def _detect_os_language(self):
-        lang_code = locale.getdefaultlocale()[0]
-        if lang_code:
-            return lang_code[:2]
-        return "en"
-
-    def _load_locale(self):
-        path = os.path.join(self.locales_dir, f"{self.lang}.json")
-        if not os.path.exists(path):
-            path = os.path.join(self.locales_dir, "en.json")
-        with open(path, "r", encoding="utf-8") as f:
-            self.translations = json.load(f)
-
-    def t(self, key, default=None, **kwargs):
-        text = self.translations.get(key, default or key)
-        if kwargs:
-            try:
-                text = text.format(**kwargs)
-            except Exception:
-                pass
-        return text
-
-    def set_language(self, lang):
+    def __init__(self, lang: str, locales_dir: str = "locales"):
         self.lang = lang
-        self._load_locale()
+        self.locales_dir = locales_dir
+        self.data = {}
+        self.load_file()
 
-# helper function
-def get_localization(lang=None, locales_dir="locales"):
-    return Localization(lang=lang, locales_dir=locales_dir)
+    def load_file(self):
+        path = os.path.join(self.locales_dir, f"{self.lang}.json")
+        if not os.path.isfile(path):
+            print(f"[Localization] Warning: file not found: {path}")
+            self.data = {}
+            return
+        try:
+            with open(path, "r", encoding="utf-8") as f:
+                self.data = json.load(f)
+            print(f"[Localization] Loaded {len(self.data)} keys for '{self.lang}' from {path}")
+        except Exception as e:
+            print(f"[Localization] Error loading {path}: {e}")
+            self.data = {}
+
+    def get(self, key: str, fallback: str = None) -> str:
+        if key in self.data:
+            return self.data[key]
+        else:
+            print(f"[DEBUG] L(): Missing key '{key}' for language '{self.lang}'")
+            return fallback if fallback is not None else key
+
+# -------------------------------------------------------
+# Global functions
+# -------------------------------------------------------
+def get_localization(lang: str, locales_dir: str = "locales") -> Localization:
+    """Activate a localization and return the object"""
+    global _active_loc
+    _active_loc = Localization(lang, locales_dir)
+    return _active_loc
+
+def L(key: str, fallback: str = None, loc: Localization = None) -> str:
+    """Global helper for translations; use provided loc if given."""
+    loc_to_use = loc or _active_loc
+    if loc_to_use is None:
+        return fallback if fallback is not None else key
+    return loc_to_use.get(key, fallback)
+
