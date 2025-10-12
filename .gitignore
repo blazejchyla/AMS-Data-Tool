@@ -190,3 +190,10 @@ cython_debug/
 local.duckdb
 local.duckdb.wal
 .vscode/settings.json
+resources/plugins/qminimal.dll
+resources/plugins/qwindows.dll
+resources/plugins/platforms/qminimal.dll
+resources/plugins/platforms/qwindows.dll
+hooks/hook_qt_plugins.py
+requirements.txt
+hooks/hook-duckdb.py
