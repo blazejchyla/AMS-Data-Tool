@@ -1,4 +1,5 @@
 # main.py
+__version__ = "1.0"
 import sys
 from PySide6.QtWidgets import QApplication, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox
 from modules.core import MainWindow
