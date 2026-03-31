@@ -1,5 +1,5 @@
 ### AMS Data Tool v1.0.0
-A high-performance desktop utility designed for SMC AMS sensor data visualization and format conversion. This tool streamlines the process of handling large CSV datasets using an embedded SQL engine.
+A high-performance desktop utility designed for SMC AMS data visualization and format conversion. This tool streamlines the process of handling large CSV datasets using an embedded SQL engine.
 
 ---
 
