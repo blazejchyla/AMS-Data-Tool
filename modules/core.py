@@ -51,23 +51,31 @@ class DuckDBManager:
         self.conn.execute(f"COPY ({sql}) TO '{path}' (DELIMITER '{delimiter}', HEADER TRUE);")
 
     def reformat_datetime_full_table(self, table_name):
-        total_rows = self.table_count(table_name)
-        if total_rows == 0:
-            return
-        df = self.get_page(table_name, 0, total_rows)
-        if df.shape[1] < 2:
-            raise ValueError(L("core.error.not_enough_columns", "Not enough columns to reformat date/time"))
-        dates = df.iloc[:, 0].astype(str).str.replace(r"^D#", "", regex=True)
-        times = df.iloc[:, 1].astype(str).str.replace(r"^TOD#", "", regex=True)
-        combined = dates + " " + times
-        dt = pd.to_datetime(combined, format="%Y-%m-%d %H:%M:%S.%f", errors="coerce")
-        formatted = dt.dt.strftime("%d/%m/%Y %H:%M:%S.%f").str[:-3]
-        df.iloc[:, 0] = formatted
-        df.drop(df.columns[1], axis=1, inplace=True)
-        self.conn.execute(f"DROP TABLE IF EXISTS {table_name}")
-        self.conn.register("tmp_df", df)
-        self.conn.execute(f"CREATE TABLE {table_name} AS SELECT * FROM tmp_df")
-        self.conn.unregister("tmp_df")
+            total_rows = self.table_count(table_name)
+            if total_rows == 0:
+                return
+            df = self.get_page(table_name, 0, total_rows)
+            if df.shape[1] < 2 or df.columns[0] == "Date and time":
+                return # Skip if already formatted or invalid
+                
+            dates = df.iloc[:, 0].astype(str).str.replace(r"^D#", "", regex=True)
+            times = df.iloc[:, 1].astype(str).str.replace(r"^TOD#", "", regex=True)
+            combined = dates + " " + times
+            dt = pd.to_datetime(combined, format="%Y-%m-%d %H:%M:%S.%f", errors="coerce")
+            
+            if dt.isna().all():
+                dt = pd.to_datetime(combined, errors="coerce") # Fallback
+                
+            if dt.notna().any():
+                formatted = dt.dt.strftime("%d/%m/%Y %H:%M:%S.%f").str[:-3]
+                df.iloc[:, 0] = formatted
+                df.drop(df.columns[1], axis=1, inplace=True)
+                df.rename(columns={df.columns[0]: 'Date and time'}, inplace=True) # Rename column
+                
+                self.conn.execute(f"DROP TABLE IF EXISTS {table_name}")
+                self.conn.register("tmp_df", df)
+                self.conn.execute(f"CREATE TABLE {table_name} AS SELECT * FROM tmp_df")
+                self.conn.unregister("tmp_df")
 
 # =======================================================
 # Worker Thread
@@ -160,44 +168,6 @@ class PagingTableModel(QAbstractTableModel):
             self.layoutChanged.emit()
 
 # =======================================================
-# Advanced Settings Dialog
-# =======================================================
-class AdvancedSettingsDialog(QDialog):
-    """Only handles CSV delimiter now."""
-    def __init__(self, initial_delimiter=";"):
-        super().__init__()
-        self.setWindowTitle(L("core.dialog.settings.title", "Advanced Settings"))
-        self.resize(400, 120)
-        self.selected_delimiter = initial_delimiter
-
-        layout = QtWidgets.QVBoxLayout(self)
-
-        # CSV delimiter
-        delim_layout = QtWidgets.QHBoxLayout()
-        delim_layout.addWidget(QtWidgets.QLabel(L("core.label.delimiter", "CSV Delimiter")))
-        self.delim_combo = QComboBox()
-        self.delim_combo.addItems(["semicolon (;)", "comma (,)", "tab (\\t)", "pipe (|)"])
-        delim_map = {";": 0, ",": 1, "\t": 2, "|": 3}
-        self.delim_combo.setCurrentIndex(delim_map.get(initial_delimiter, 0))
-        delim_layout.addWidget(self.delim_combo)
-        layout.addLayout(delim_layout)
-
-        # Buttons
-        btn_layout = QtWidgets.QHBoxLayout()
-        self.ok_btn = QPushButton(L("core.label.confirm", "OK"))
-        self.ok_btn.clicked.connect(self.accept)
-        self.cancel_btn = QPushButton(L("core.label.cancel", "Cancel"))
-        self.cancel_btn.clicked.connect(self.reject)
-        btn_layout.addWidget(self.ok_btn)
-        btn_layout.addWidget(self.cancel_btn)
-        layout.addLayout(btn_layout)
-
-    def get_values(self):
-        delim_index = self.delim_combo.currentIndex()
-        delim_map_rev = {0: ";", 1: ",", 2: "\t", 3: "|"}
-        return delim_map_rev.get(delim_index, ";")
-
-# =======================================================
 # Main Window
 # =======================================================
 class MainWindow(QMainWindow):
@@ -235,17 +205,9 @@ class MainWindow(QMainWindow):
         self.clear_btn.clicked.connect(self.on_clear)
         toolbar.addWidget(self.clear_btn)
 
-        self.reformat_btn = QPushButton(L("core.btn.reformat_datetime", "Reformat DateTime"))
-        self.reformat_btn.clicked.connect(self.reformat_datetime_column)
-        toolbar.addWidget(self.reformat_btn)
-
-        self.plot_btn = QPushButton(L("core.btn.plot", "Plot Data"))
-        self.plot_btn.clicked.connect(self.on_plot)
-        toolbar.addWidget(self.plot_btn)
-
-        self.settings_btn = QPushButton(L("core.btn.settings", "Advanced Settings"))
-        self.settings_btn.clicked.connect(self.on_advanced_settings)
-        toolbar.addWidget(self.settings_btn)
+        self.export_csv_btn = QPushButton(L("core.btn.export", "Export CSV"))
+        self.export_csv_btn.clicked.connect(self.on_export_csv)
+        toolbar.addWidget(self.export_csv_btn)
 
         layout.addLayout(toolbar)
 
@@ -267,9 +229,9 @@ class MainWindow(QMainWindow):
 
         # Export
         export = QHBoxLayout()
-        self.export_csv_btn = QPushButton(L("core.btn.export", "Export CSV"))
-        self.export_csv_btn.clicked.connect(self.on_export_csv)
-        export.addWidget(self.export_csv_btn)
+        self.plot_btn = QPushButton(L("core.btn.plot", "Plot Data"))
+        self.plot_btn.clicked.connect(self.on_plot)
+        export.addWidget(self.plot_btn)
         layout.addLayout(export)
 
         # Status bar
@@ -281,14 +243,6 @@ class MainWindow(QMainWindow):
         # Undo/Redo shortcuts
         QShortcut(QKeySequence("Ctrl+Z"), self).activated.connect(self.on_undo)
         QShortcut(QKeySequence("Ctrl+Y"), self).activated.connect(self.on_redo)
-
-    # ------------------------------
-    # Advanced Settings
-    # ------------------------------
-    def on_advanced_settings(self):
-        dlg = AdvancedSettingsDialog(initial_delimiter=self.delimiter)
-        if dlg.exec() == QDialog.Accepted:
-            self.delimiter = dlg.get_values()
 
     # ------------------------------
     # Import / Export
@@ -329,12 +283,33 @@ class MainWindow(QMainWindow):
         worker.error.connect(lambda msg: self._on_worker_error(msg, worker))
         worker.start()
 
+    # ------------------------------
+    # Date/Time Reformat
+    # ------------------------------
+
     @Slot()
     def _on_import_finished(self, worker):
         if worker in self.active_threads: self.active_threads.remove(worker)
+        
+        # Immediately start reformatting the date/time
+        self.status.setText(L("core.msg.reformatting", "Formatting Date & Time..."))
+        
+        def job():
+            self.db.reformat_datetime_full_table(self.current_table)
+            return True
+            
+        reformat_worker = WorkerThread(job)
+        self.active_threads.append(reformat_worker)
+        reformat_worker.finished.connect(lambda _: self._on_full_reformat_done(reformat_worker))
+        reformat_worker.error.connect(lambda msg: self._on_worker_error(msg, reformat_worker))
+        reformat_worker.start()
+
+    @Slot()
+    def _on_full_reformat_done(self, worker):
+        if worker in self.active_threads: self.active_threads.remove(worker)
+        self.on_load_full() # Load the grid only after formatting is fully done
         self.set_busy(False)
-        self.on_load_full()
-        self.status.setText(L("core.msg.import_success", "Import complete"))
+        self.status.setText(L("core.msg.import_success", "Data imported and formatted successfully"))
 
     def on_export_csv(self):
         if not self.current_table:
@@ -406,28 +381,6 @@ class MainWindow(QMainWindow):
         dlg.exec()
 
     # ------------------------------
-    # Date/Time Reformat
-    # ------------------------------
-    def reformat_datetime_column(self):
-        if not self.current_table: return
-        self.set_busy(True)
-        def job():
-            self.db.reformat_datetime_full_table(self.current_table)
-            return True
-        worker = WorkerThread(job)
-        self.active_threads.append(worker)
-        worker.finished.connect(lambda _: self._on_full_reformat_done(worker))
-        worker.error.connect(lambda msg: self._on_worker_error(msg, worker))
-        worker.start()
-
-    @Slot()
-    def _on_full_reformat_done(self, worker):
-        if worker in self.active_threads: self.active_threads.remove(worker)
-        self.on_load_full()
-        self.set_busy(False)
-        self.status.setText(L("core.msg.import_success", "Date/time reformat done"))
-
-    # ------------------------------
     # Undo/Redo + Busy handling
     # ------------------------------
     def on_undo(self):
@@ -443,8 +396,8 @@ class MainWindow(QMainWindow):
     def set_busy(self, busy):
         """Enable/disable UI controls while long task runs."""
         for btn in [
-            self.import_btn, self.clear_btn, self.reformat_btn,
-            self.plot_btn, self.settings_btn, self.export_csv_btn,
+            self.import_btn, self.clear_btn,
+            self.plot_btn, self.export_csv_btn,
             self.prev_btn, self.next_btn
         ]:
             btn.setEnabled(not busy)
