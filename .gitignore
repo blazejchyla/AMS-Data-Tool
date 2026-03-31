@@ -195,3 +195,4 @@ hooks/hook_qt_plugins.py
 requirements.txt
 hooks/hook-duckdb.py
 /build
+build/installer/AMS_Data_Tool_Setup_v1.0.0.exe
