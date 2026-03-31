@@ -194,3 +194,4 @@ resources/plugins/platforms/qwindows.dll
 hooks/hook_qt_plugins.py
 requirements.txt
 hooks/hook-duckdb.py
+/build
