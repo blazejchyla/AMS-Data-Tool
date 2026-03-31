@@ -196,3 +196,7 @@ requirements.txt
 hooks/hook-duckdb.py
 /build
 build/installer/AMS_Data_Tool_Setup_v1.0.0.exe
+ams-data-tool-analysis.md
+installer.iss
+build/hooks
+build/installer
