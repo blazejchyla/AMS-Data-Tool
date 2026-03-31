@@ -2,9 +2,10 @@
 import os
 import pandas as pd
 import duckdb
+from modules.utils import get_app_data_path
 from PySide6 import QtCore, QtWidgets
 from PySide6.QtCore import Qt, QAbstractTableModel, QModelIndex, Signal, Slot
-from PySide6.QtGui import QKeySequence, QShortcut
+from PySide6.QtGui import QKeySequence, QShortcut, QScreen
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QVBoxLayout, QHBoxLayout,
     QPushButton, QLineEdit, QLabel, QTableView,
@@ -21,8 +22,10 @@ UNDO_LIMIT = 10
 # DuckDB Manager
 # =======================================================
 class DuckDBManager:
-    def __init__(self, path="local.duckdb"):
-        self.conn = duckdb.connect(database=path, read_only=False)
+    def __init__(self, path=None):
+        # If no path is provided, it will create an in-memory db or default
+        # But we will pass the AppData path from MainWindow
+        self.conn = duckdb.connect(database=path if path else ":memory:", read_only=False)
 
     def import_csv(self, csv_path, table_name, delimiter=";", has_header=True, ignore_errors=True, progress_callback=None):
         hdr = "true" if has_header else "false"
@@ -173,8 +176,13 @@ class PagingTableModel(QAbstractTableModel):
 class MainWindow(QMainWindow):
     def __init__(self, loc, parent=None):
         super().__init__(parent)
-        self.loc = loc  # store the localization instance
-        self.db = DuckDBManager()
+        self.loc = loc 
+        
+        # FIX: Define the safe database path
+        self.app_data_folder = get_app_data_path()
+        db_path = os.path.join(self.app_data_folder, 'local.duckdb')
+        
+        self.db = DuckDBManager(path=db_path) # Pass the safe path
         self.current_table = None
         self.delimiter = ";"
         self.ignore_errors = True
@@ -243,6 +251,21 @@ class MainWindow(QMainWindow):
         # Undo/Redo shortcuts
         QShortcut(QKeySequence("Ctrl+Z"), self).activated.connect(self.on_undo)
         QShortcut(QKeySequence("Ctrl+Y"), self).activated.connect(self.on_redo)
+
+        self.center_on_primary()
+
+    def center_on_primary(self):
+        """Forces the window to the center of the primary display."""
+        primary_screen = QtWidgets.QApplication.primaryScreen()
+        screen_geometry = primary_screen.availableGeometry()
+        window_geometry = self.frameGeometry()
+        
+        # Calculate the center point of the primary screen
+        center_point = screen_geometry.center()
+        
+        # Move the window's center to that point
+        window_geometry.moveCenter(center_point)
+        self.move(window_geometry.topLeft())
 
     # ------------------------------
     # Import / Export

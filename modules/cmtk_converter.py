@@ -1,11 +1,15 @@
 # modules/cmtk_converter.py
 import pandas as pd
 import os
+from modules.utils import get_app_data_path
 from datetime import datetime
 
-def convert_cmtk_to_d055(pressure_path, flow_path, temp_path=None, output_dir="conversion_output"):
+def convert_cmtk_to_d055(pressure_path, flow_path, temp_path=None):
+    # FIX: Use AppData instead of a local directory
+    output_dir = os.path.join(get_app_data_path(), "conversions")
+    
     if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+        os.makedirs(output_dir, exist_ok=True)
 
     df_p = pd.read_csv(pressure_path)
     df_f = pd.read_csv(flow_path)
