@@ -5,7 +5,7 @@ A high-performance desktop utility designed for SMC AMS data visualization and f
 
 🚀 **Key Features**
 - **DuckDB Integration:** Utilizes a high-performance analytical database for near-instant loading and paging of massive CSV files without consuming excessive RAM.
-- **CMTK Multi-File Conversion:** A dedicated "Dispatcher" mode to unify separate Pressure, Flow, and Temperature CSVs from CMTK systems into a single, standardized D055-compatible format.
+- **CMTK Multi-File Conversion:** A dedicated "Dispatcher" mode to unify separate Pressure, Flow, and Temperature CSVs from CMTK systems into a single, standardized compatible format.
 - **Interactive Plotting:** Dynamic multi-axis visualization using Matplotlib, allowing for real-time toggling of data series (Pressure, Flow, Temp) and precise data inspection.
 - **Automatic Data Formatting:** Automatically detects and reformats PLC-style timestamps (D# and TOD#) into standard human-readable formats for analysis.
 - **Professional Installer:** Native Windows installation via Inno Setup, including desktop shortcuts and "Add/Remove Programs" integration.
