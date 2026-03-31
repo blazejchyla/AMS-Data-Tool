@@ -293,6 +293,27 @@ class MainWindow(QMainWindow):
     # ------------------------------
     # Import / Export
     # ------------------------------
+    def auto_import_file(self, path):
+            """Silently imports a file without triggering the QFileDialog."""
+            if not os.path.exists(path): 
+                return
+                
+            table = self.table_name_input.text().strip()
+            if not table:
+                # Fallback if the user cleared the input box
+                table = "my_table"
+                self.table_name_input.setText(table)
+                
+            self.current_table = table
+            self.set_busy(True)
+            
+            # Trigger the DuckDB worker thread exactly like a manual import
+            worker = WorkerThread(self.db.import_csv, path, self.current_table, self.delimiter, True, self.ignore_errors)
+            self.active_threads.append(worker)
+            worker.finished.connect(lambda _: self._on_import_finished(worker))
+            worker.error.connect(lambda msg: self._on_worker_error(msg, worker))
+            worker.start()
+
     def on_import(self):
         path, _ = QFileDialog.getOpenFileName(self, L("core.btn.import", "Open CSV"), "", "CSV Files (*.csv)")
         if not path: return

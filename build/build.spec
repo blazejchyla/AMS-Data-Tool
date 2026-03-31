@@ -58,6 +58,7 @@ hiddenimports = [
 ]
 
 excluded_modules = [
+    # Original exclusions
     "matplotlib.tests",
     "matplotlib.backends._tkagg",
     "matplotlib.backends._gtkagg",
@@ -66,6 +67,34 @@ excluded_modules = [
     "numpy.testing",
     "PySide6.scripts.deploy_lib",
     "project_lib",
+    
+    # PySide6 Heavyweights
+    "PySide6.QtWebEngine",
+    "PySide6.QtWebEngineCore",
+    "PySide6.QtWebEngineWidgets",
+    "PySide6.Qt3D",
+    "PySide6.QtQml",
+    "PySide6.QtQuick",
+    "PySide6.QtQuickWidgets",
+    "PySide6.QtBluetooth",
+    "PySide6.QtNetwork",
+    "PySide6.QtMultimedia",
+    "PySide6.QtMultimediaWidgets",
+    "PySide6.QtSensors",
+    "PySide6.QtPositioning",
+    "PySide6.QtWebSockets",
+    
+    # Pandas / Data Science ecosystem baggage
+    "scipy",
+    "openpyxl",
+    "xlrd",
+    "xlwt",
+    "tables",
+    "sqlalchemy",
+    "IPython",
+    "jupyter",
+    "notebook",
+    "pytest",
 ]
 
 # -------------------------

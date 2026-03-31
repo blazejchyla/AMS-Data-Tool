@@ -1,67 +1,64 @@
 # main.py
-__version__ = "1.0"
 import sys
-from PySide6.QtWidgets import QApplication, QDialog, QVBoxLayout, QHBoxLayout, QLabel, QPushButton, QComboBox
+import os
+from PySide6.QtWidgets import QApplication, QDialog, QVBoxLayout, QPushButton, QLabel, QHBoxLayout, QFileDialog, QMessageBox
 from modules.core import MainWindow
-from modules.i18n import get_localization, L
+from modules.i18n import get_localization
+from modules.cmtk_converter import convert_cmtk_to_d055
 
-# =======================================================
-# Language Selection Dialog
-# =======================================================
-class LanguageSelectionDialog(QDialog):
-    def __init__(self, available_languages=None):
+class AppDispatcher(QDialog):
+    def __init__(self):
         super().__init__()
-        self.setWindowTitle("Select Language")
-        self.resize(300, 100)
-        self.selected_language = None
-
-        if available_languages is None:
-            available_languages = ["en", "de", "pl", "jp"]
-
+        self.setWindowTitle("AMS Data Tool - Select Mode")
+        self.setFixedSize(400, 200)
+        self.result_path = None
+        
         layout = QVBoxLayout(self)
-        hlayout = QHBoxLayout()
-        hlayout.addWidget(QLabel("Language:"))
-        self.lang_combo = QComboBox()
-        self.lang_combo.addItems(available_languages)
-        hlayout.addWidget(self.lang_combo)
-        layout.addLayout(hlayout)
-
-        # OK / Cancel buttons
+        layout.addWidget(QLabel("Select Data Source Type:", alignment=Qt.AlignCenter))
+        
         btn_layout = QHBoxLayout()
-        ok_btn = QPushButton("OK")
-        ok_btn.clicked.connect(self.on_ok)
-        cancel_btn = QPushButton("Cancel")
-        cancel_btn.clicked.connect(self.reject)
-        btn_layout.addWidget(ok_btn)
-        btn_layout.addWidget(cancel_btn)
+        self.btn_d055 = QPushButton("AMS Case D055\n(Standard)")
+        self.btn_cmtk = QPushButton("AMS Case CMTK\n(Multi-file Conversion)")
+        
+        # Style buttons to be big
+        for btn in [self.btn_d055, self.btn_cmtk]:
+            btn.setMinimumHeight(100)
+            btn_layout.addWidget(btn)
+            
         layout.addLayout(btn_layout)
+        
+        self.btn_d055.clicked.connect(self.accept) # Just opens main window
+        self.btn_cmtk.clicked.connect(self.handle_cmtk)
 
-    def on_ok(self):
-        self.selected_language = self.lang_combo.currentText()
-        self.accept()
+    def handle_cmtk(self):
+        # Quick file selection prompts
+        p_path, _ = QFileDialog.getOpenFileName(self, "Select Pressure CSV", "", "CSV (*.csv)")
+        if not p_path: return
+        f_path, _ = QFileDialog.getOpenFileName(self, "Select Flow CSV", "", "CSV (*.csv)")
+        if not f_path: return
+        t_path, _ = QFileDialog.getOpenFileName(self, "Select Temperature CSV (Optional)", "", "CSV (*.csv)")
+        
+        try:
+            self.result_path = convert_cmtk_to_d055(p_path, f_path, t_path)
+            self.accept()
+        except Exception as e:
+            QMessageBox.critical(self, "Conversion Error", f"Failed to unify files: {str(e)}")
 
-# =======================================================
-# Application Entry Point
-# =======================================================
 def main():
     app = QApplication(sys.argv)
-
-    # Prompt user for language
-    dlg = LanguageSelectionDialog()
-    if dlg.exec() == QDialog.Accepted:
-        lang = dlg.selected_language
-    else:
-        lang = "en"  # fallback
-
-    # Initialize localization globally
-    get_localization(lang)
-
-    # Launch main window
-    loc = get_localization(lang)
-    window = MainWindow(loc)
-    window.show()
-
-    sys.exit(app.exec())
+    
+    dispatcher = AppDispatcher()
+    if dispatcher.exec() == QDialog.Accepted:
+        # Default to English as the selector is removed
+        loc = get_localization("en")
+        window = MainWindow(loc)
+        
+        # If conversion happened, auto-trigger the import
+        if dispatcher.result_path:
+            window.auto_import_file(dispatcher.result_path)
+            
+        window.show()
+        sys.exit(app.exec())
 
 if __name__ == "__main__":
     main()
