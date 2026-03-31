@@ -24,7 +24,7 @@ import re
 # ------------------------------------------
 # Project Info
 # ------------------------------------------
-PYTHON_EXE = r"C:\Users\SMClocal\AppData\Local\Programs\Python\Python312\python.exe"
+PYTHON_EXE = sys.executable
 PROJECT_ROOT = Path(__file__).parent.parent.resolve()
 BUILD_DIR = PROJECT_ROOT / "build"
 DIST_DIR = BUILD_DIR / "dist"
